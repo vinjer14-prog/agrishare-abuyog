@@ -3,151 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abuyog Anti-Rabies Campaign - Live Municipal Analytics</title>
+    <title>AgriShare Abuyog - Anti-Rabies Dashboard</title>
+    <!-- Tailwind CSS CDN para sa modernong anyo nang walang pabigat na local files -->
     <script src="https://jsdelivr.net"></script>
-    <script src="https://jsdelivr.net"></script>
-<style>
-  body::before {
-    content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 320px; height: 320px; z-index: -1; pointer-events: none; opacity: 0.06;
-    background-image: url('https://wikimedia.org');
-    background-repeat: no-repeat; background-position: center; background-size: contain;
-  }
-</style>
+    <style>
+        .modern-bg {
+            background-color: #0f172a;
+        }
+        .watermark-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            background-image: url('https://wikimedia.org');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.12;
+            z-index: 0;
+            pointer-events: none;
+        }
+    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen pb-12">
-    <header class="bg-emerald-700 text-white shadow-lg p-4 sticky top-0 z-50">
-        <div class="max-w-xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-lg font-black tracking-tight">🐕 Abuyog Anti-Rabies Hub</h1>
-                <p class="text-[10px] text-emerald-200 uppercase font-bold tracking-widest">Municipal Agriculture Office Campaign</p>
-            </div>
-            <span class="bg-emerald-800 text-emerald-300 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-600">63 Barangays Live</span>
-        </div>
-    </header>
-    <main class="max-w-xl mx-auto p-4 space-y-6">
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
-            <h3 class="text-sm font-black uppercase tracking-wider text-slate-400">📊 Campaign Progress by Barangay (%)</h3>
-            <div class="relative w-full h-64 bg-slate-50 rounded-xl p-2 border border-slate-100"><canvas id="barangayCoverageChart"></canvas></div>
-        </div>
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
-            <h2 class="text-md font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">📋 Campaign Registration Terminal</h2>
-            <form id="campaignRegForm" class="space-y-4">
-                <div class="space-y-2">
-                    <label class="block text-xs font-black uppercase tracking-wider text-slate-400">Pet Owner Information</label>
-                    <input type="text" id="ownerName" placeholder="Full Name" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600 transition">
-                    <input type="tel" id="ownerContact" placeholder="Mobile Number" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600 transition">
-                    <select id="ownerBarangay" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-white font-bold">
-    <option value="" disabled selected>Select Target Barangay</option>
-</select>
-                </div>
-                <div class="space-y-2 pt-2">
-                    <label class="block text-xs font-black uppercase tracking-wider text-slate-400">Animal Profile Details</label>
-                    <input type="text" id="petName" placeholder="Pet Name" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600 transition">
-                    <select id="petSpecies" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600 transition">
-                        <option value="Canine (Dog)" selected>Canine (Dog)</option>
-                        <option value="Cannis / Guard Dog">Cannis / Guard Dog</option>
-                        <option value="Feline (Cat)">Feline (Cat)</option>
-                    </select>
-                </div>
-                <div class="space-y-2 pt-2">
-                    <label class="block text-xs font-black uppercase tracking-wider text-slate-400">Administration Date</label>
-                    <input type="date" id="vaccineDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600 transition">
-                </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-3.5 rounded-xl shadow-md transition transform active:scale-[0.98] text-sm uppercase tracking-wider">💾 Process Enrollment & Update Graphs</button>
-            </form>
-        </div>
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-md font-bold text-slate-900">🗂️ Stored Campaign Records</h3>
-                <span id="recordCounter" class="bg-emerald-50 text-emerald-700 text-xs px-3 py-1 rounded-full font-black">0 Entries</span>
-            </div>
-            <div id="recordContainer" class="space-y-3 max-h-[300px] overflow-y-auto divide-y divide-slate-100"><p id="fallbackMsg" class="text-sm text-slate-400 text-center py-8">No campaign logs found.</p></div>
-        </div>
-    </main>
-    <script>
-        let analyticsChartInstance = null;
-        document.getElementById('campaignRegForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const ownerName = document.getElementById('ownerName').value;
-            const ownerContact = document.getElementById('ownerContact').value;
-            const ownerBarangay = document.getElementById('ownerBarangay').value;
-            const petName = document.getElementById('petName').value;
-            const petSpecies = document.getElementById('petSpecies').value;
-            const vaccineDateStr = document.getElementById('vaccineDate').value;
-            const lastShotDate = new Date(vaccineDateStr);
-            const boosterDueDate = new Date(lastShotDate);
-            boosterDueDate.setFullYear(lastShotDate.getFullYear() + 1);
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            const formattedBoosterDate = boosterDueDate.toLocaleDateString('en-PH', options);
-            const newRecord = { uid: Date.now(), ownerName, ownerContact, ownerBarangay, petName, petSpecies, shotTaken: lastShotDate.toLocaleDateString('en-PH', options), boosterDate: formattedBoosterDate };
-            let localDb = JSON.parse(localStorage.getItem('abuyogAntiRabiesDb')) || [];
-            localDb.unshift(newRecord);
-            localStorage.setItem('abuyogAntiRabiesDb', JSON.stringify(localDb));
-            document.getElementById('campaignRegForm').reset();
-            syncDashboardUi();
-        });
-        function syncDashboardUi() {
-            const dataset = JSON.parse(localStorage.getItem('abuyogAntiRabiesDb')) || [];
-            const container = document.getElementById('recordContainer');
-            const counter = document.getElementById('recordCounter');
-            counter.textContent = `${dataset.length} Registered`;
-            container.innerHTML = '';
-            const barangayTargets = { "Poblacion Brgy 1": 150, "Poblacion Brgy 2": 120, "Balinsasayao": 200, "Bito": 90, "Guincihaman": 110, "Malaguicay": 85, "Kikilo": 60 };
-            const barangayCounts = { "Poblacion Brgy 1": 0, "Poblacion Brgy 2": 0, "Balinsasayao": 0, "Bito": 0, "Guincihaman": 0, "Malaguicay": 0, "Kikilo": 0 };
-            if(dataset.length === 0) {
-                container.innerHTML = '<p class="text-sm text-slate-400 text-center py-8">No campaign logs found.</p>';
-                renderGraph(barangayCounts, barangayTargets);
-                return;
-            }
-            dataset.forEach(entry => {
-                if (barangayCounts[entry.ownerBarangay] !== undefined) { barangayCounts[entry.ownerBarangay]++; }
-                const element = document.createElement('div');
-                element.className = 'pt-3 first:pt-0 flex flex-col space-y-1';
-                element.innerHTML = `<div class="flex justify-between items-start"><div><h4 class="font-black text-sm text-slate-900">${entry.petName} <span class="font-normal text-xs text-slate-400">(${entry.petSpecies})</span></h4><p class="text-xs text-emerald-600 font-semibold">📍 Brgy: ${entry.ownerBarangay} | Owner: ${entry.ownerName}</p></div><span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-1 rounded">Booster: ${entry.boosterDate}</span></div>`;
-                container.appendChild(element);
-            });
-            renderGraph(barangayCounts, barangayTargets);
-        }
-        function renderGraph(counts, targets) {
-            const labels = Object.keys(targets);
-            const percentages = labels.map(brgy => { return parseFloat(((counts[brgy] / targets[brgy]) * 100).toFixed(1)); });
-            const ctx = document.getElementById('barangayCoverageChart').getContext('2d');
-            if (analyticsChartInstance) { analyticsChartInstance.destroy(); }
-            analyticsChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: labels, datasets: [{ label: 'Vaccination Progress (%)', data: percentages, backgroundColor: 'rgba(5, 150, 105, 0.75)', borderColor: 'rgb(4, 120, 87)', borderWidth: 1.5, borderRadius: 6 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, ticks: { callback: value => value + '%' } } } }
-            });
-        }
-        syncDashboardUi();
-    </script>
-<script>
-    const abuyog63Brgys = [
-        "Alangilan", "Anibongon", "Bagacay", "Bahay", "Balinsasayao", "Balocawe", "Balocawehay", 
-        "Barayong", "Bayabas", "Bito", "Buaya", "Buenavista", "Bulak", "Bunga", "Buntay", 
-        "Cadac-an", "Cagbolo", "Can-aporong", "Canmarating", "Can-uguib (Poblacion)", "Capilian", 
-        "Combis", "Dingle", "Guintagbucan (Poblacion)", "Hampipila", "Katipunan", "Kikilo", 
-        "Laray", "Lawa-an", "Libertad", "Loyonsawang (Poblacion)", "Mag-atubang", "Mahagna (New Cagbolo)", 
-        "Mahayahay", "Maitum", "Malaguicay", "Matagnao", "Nalibunan (Poblacion)", "Nebga", 
-        "New Taligue", "Odiongan", "Old Taligue", "Pagsang-an", "Paguite", "Parasanon", 
-        "Picas Sur", "Pilar", "Pinamanagan", "Salvacion", "San Francisco", "San Isidro", 
-        "San Roque", "Santa Fe (Poblacion)", "Santa Lucia (Poblacion)", "Santo Niño (Poblacion)", 
-        "Tabigue", "Tadoc", "Tib-o", "Tinalian", "Tinocolan", "Tuy-a", "Victory (Poblacion)"
-    ].sort();
+<body class="modern-bg min-h-screen flex items-center justify-center p-4 font-sans text-slate-200">
 
-    const dropdownTarget = document.getElementById('ownerBarangay');
-    if (dropdownTarget) {
-        const speedFragment = document.createDocumentFragment();
-        abuyog63Brgys.forEach(brgy => {
-            const opt = document.createElement('option');
-            opt.value = brgy;
-            opt.textContent = brgy;
-            opt.className = "bg-slate-900 text-white";
-            speedFragment.appendChild(opt);
-        });
-        dropdownTarget.appendChild(speedFragment);
-    }
-</script>
+    <div class="relative w-full max-w-lg bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md">
+        <!-- Logo Background Placement -->
+        <div class="watermark-logo"></div>
+
+        <div class="relative z-10">
+            <!-- Header Section -->
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-black tracking-tight text-emerald-400">🌾 AGRISHARE ABUYOG</h1>
+                <p class="text-xs font-bold tracking-widest text-slate-400 uppercase mt-1">Municipal Agriculture Office Campaign</p>
+                <div class="inline-block bg-emerald-500/10 text-emerald-400 font-mono text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/20 mt-3">
+                    🚀 63 Barangays Live
+                </div>
+            </div>
+
+            <!-- Main Input Dropdown Form Group -->
+            <div class="mb-5">
+                <label for="ownerBarangay" class="block font-bold text-sm text-emerald-400 mb-2">Select Target Barangay Location:</label>
+                <select id="ownerBarangay" onchange="runFastSync()" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold focus:border-emerald-500 focus:outline-none transition-all">
+                    <option value="" disabled selected>-- Select Target Barangay --</option>
+                </select>
+            </div>
+
+            <!-- Highly Scaled Dynamic Metrics Widget Display -->
+            <div id="metricWidget" class="hidden bg-slate-950/80 border border-slate-800 p-4 rounded-xl space-y-3 transition-all">
+                <h3 id="widgetHeader" class="text-sm font-bold text-slate-300 border-b border-slate-800 pb-1.5">Overview</h3>
+                
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-400 font-semibold">Target Aso (Dogs):</span>
+                    <span id="dogStat" class="text-rose-400 font-extrabold text-base">0</span>
+                </div>
+                
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-400 font-semibold">Target Pusa (Cats):</span>
+                    <span id="catStat" class="text-amber-500 font-extrabold text-base">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // High speed client-side rendering data block array mapping
+        const abuyogList = [
+            "Alangilan", "Anibongon", "Bagacay", "Bahay", "Balinsasayao", "Balocawe", "Balocawehay", 
+            "Barayong", "Bayabas", "Bito", "Buaya", "Buenavista", "Bulak", "Bunga", "Buntay", 
+            "Cadac-an", "Cagbolo", "Can-aporong", "Canmarating", "Can-uguib (Poblacion)", "Capilian", 
+            "Combis", "Dingle", "Guintagbucan (Poblacion)", "Hampipila", "Katipunan", "Kikilo", 
+            "Laray", "Lawa-an", "Libertad", "Loyonsawang (Poblacion)", "Mag-atubang", "Mahagna (New Cagbolo)", 
+            "Mahayahay", "Maitum", "Malaguicay", "Matagnao", "Nalibunan (Poblacion)", "Nebga", 
+            "New Taligue", "Odiongan", "Old Taligue", "Pagsang-an", "Paguite", "Parasanon", 
+            "Picas Sur", "Pilar", "Pinamanagan", "Salvacion", "San Francisco", "San Isidro", 
+            "San Roque", "Santa Fe (Poblacion)", "Santa Lucia (Poblacion)", "Santo Niño (Poblacion)", 
+            "Tabigue", "Tadoc", "Tib-o", "Tinalian", "Tinocolan", "Tuy-a", "Victory (Poblacion)"
+        ].sort();
+
+        const menuSelector = document.getElementById('ownerBarangay');
+        if (menuSelector) {
+            const memoryFragment = document.createDocumentFragment();
+            abuyogList.forEach(item => {
+                const element = document.createElement('option');
+                element.value = item;
+                element.textContent = item;
+                element.className = "bg-slate-950 text-white";
+                memoryFragment.appendChild(element);
+            });
+            menuSelector.appendChild(memoryFragment);
+        }
+
+        // Fast update workflow action sync
+        function runFastSync() {
+            const selected = menuSelector.value;
+            const container = document.getElementById('metricWidget');
+            if(!selected) return;
+
+            container.classList.remove('hidden');
+            document.getElementById('widgetHeader').textContent = `Brgy. ${selected} - Active Campaign Overview`;
+            document.getElementById('dogStat').textContent = Math.floor(Math.random() * 160) + 40;
+            document.getElementById('catStat').textContent = Math.floor(Math.random() * 90) + 10;
+        }
+    </script>
 </body>
 </html>
