@@ -6,6 +6,14 @@
     <title>Abuyog Anti-Rabies Campaign - Live Municipal Analytics</title>
     <script src="https://jsdelivr.net"></script>
     <script src="https://jsdelivr.net"></script>
+<style>
+  body::before {
+    content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 320px; height: 320px; z-index: -1; pointer-events: none; opacity: 0.06;
+    background-image: url('https://wikimedia.org');
+    background-repeat: no-repeat; background-position: center; background-size: contain;
+  }
+</style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen pb-12">
     <header class="bg-emerald-700 text-white shadow-lg p-4 sticky top-0 z-50">
@@ -29,16 +37,9 @@
                     <label class="block text-xs font-black uppercase tracking-wider text-slate-400">Pet Owner Information</label>
                     <input type="text" id="ownerName" placeholder="Full Name" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600 transition">
                     <input type="tel" id="ownerContact" placeholder="Mobile Number" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600 transition">
-                    <select id="ownerBarangay" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600 transition">
-                        <option value="" disabled selected>Select Target Barangay</option>
-                        <option value="Poblacion Brgy 1">Poblacion Brgy 1</option>
-                        <option value="Poblacion Brgy 2">Poblacion Brgy 2</option>
-                        <option value="Balinsasayao">Balinsasayao</option>
-                        <option value="Bito">Bito</option>
-                        <option value="Guincihaman">Guincihaman</option>
-                        <option value="Malaguicay">Malaguicay</option>
-                        <option value="Kikilo">Kikilo</option>
-                    </select>
+                    <select id="ownerBarangay" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-white font-bold">
+    <option value="" disabled selected>Select Target Barangay</option>
+</select>
                 </div>
                 <div class="space-y-2 pt-2">
                     <label class="block text-xs font-black uppercase tracking-wider text-slate-400">Animal Profile Details</label>
@@ -121,5 +122,32 @@
         }
         syncDashboardUi();
     </script>
+<script>
+    const abuyog63Brgys = [
+        "Alangilan", "Anibongon", "Bagacay", "Bahay", "Balinsasayao", "Balocawe", "Balocawehay", 
+        "Barayong", "Bayabas", "Bito", "Buaya", "Buenavista", "Bulak", "Bunga", "Buntay", 
+        "Cadac-an", "Cagbolo", "Can-aporong", "Canmarating", "Can-uguib (Poblacion)", "Capilian", 
+        "Combis", "Dingle", "Guintagbucan (Poblacion)", "Hampipila", "Katipunan", "Kikilo", 
+        "Laray", "Lawa-an", "Libertad", "Loyonsawang (Poblacion)", "Mag-atubang", "Mahagna (New Cagbolo)", 
+        "Mahayahay", "Maitum", "Malaguicay", "Matagnao", "Nalibunan (Poblacion)", "Nebga", 
+        "New Taligue", "Odiongan", "Old Taligue", "Pagsang-an", "Paguite", "Parasanon", 
+        "Picas Sur", "Pilar", "Pinamanagan", "Salvacion", "San Francisco", "San Isidro", 
+        "San Roque", "Santa Fe (Poblacion)", "Santa Lucia (Poblacion)", "Santo Niño (Poblacion)", 
+        "Tabigue", "Tadoc", "Tib-o", "Tinalian", "Tinocolan", "Tuy-a", "Victory (Poblacion)"
+    ].sort();
+
+    const dropdownTarget = document.getElementById('ownerBarangay');
+    if (dropdownTarget) {
+        const speedFragment = document.createDocumentFragment();
+        abuyog63Brgys.forEach(brgy => {
+            const opt = document.createElement('option');
+            opt.value = brgy;
+            opt.textContent = brgy;
+            opt.className = "bg-slate-900 text-white";
+            speedFragment.appendChild(opt);
+        });
+        dropdownTarget.appendChild(speedFragment);
+    }
+</script>
 </body>
 </html>
